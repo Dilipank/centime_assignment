@@ -1,5 +1,7 @@
 import requests
 from config import BASE_URI, apikey
+from utils.print_util import logger
+from utils import handle_throttle
 
 
 class RestClient:
@@ -43,7 +45,10 @@ class Response:
 
 
 class APIRequest(RestClient):
-    def get_time_series_daily(self, symbol, outputsize=None, datatype=None, apikey=None, no_auth=None):
+
+    @handle_throttle
+    @logger
+    def get_time_series_daily(self, symbol=None, outputsize=None, datatype=None, apikey=None, no_auth=None):
         url = f'{self.base_url}&function=TIME_SERIES_DAILY&symbol={symbol}'
         if outputsize:
             url += f'&outputsize={outputsize}'

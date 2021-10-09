@@ -1,12 +1,13 @@
 import time
 from config import wait_time
+from utils.errors import throttling_error
 
 
 def handle_throttle(f):
     def wrapper(*args, **kwargs):
-        try:
-            f(*args, **kwargs)
-        except Exception:
+        response = f(*args, **kwargs)
+        if throttling_error.strip() in response.text:
             time.sleep(wait_time)
-        return wrapper
-    return handle_throttle
+            return f(*args, **kwargs)
+        return response
+    return wrapper
