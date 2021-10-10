@@ -10,11 +10,11 @@ def log_request_response(response):
     print('\n>>>> Request <<<<')
     print(response.request.url)
     print(response.request.headers)
-    print('>>>> Response <<<<')
+    print('\n>>>> Response <<<<')
     try:
         pretty_print(response.json())
     except Exception:
-        pretty_print(response)
+        pretty_print(response.text)
 
 
 def logger(f):

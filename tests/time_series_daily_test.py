@@ -1,14 +1,34 @@
 import pytest
 import requests
 
-from utils.rest_operations import APIRequest
-from utils.errors import invalid_api_call_error, no_apikey_error
-rest_obj = APIRequest()
+from client.time_series_daily_client import TimeSeriesDailyApi
+from utils.errors import invalid_api_call_error, no_apikey_error, throttling_error
+rest_obj = TimeSeriesDailyApi()
+
+
+def test_throttling_failure():
+    """
+    Test the throttle limit of the API. Should return an error message after 5 attempts.
+    """
+    for _ in range(5):
+        rest_obj.get_time_series_daily('IBM', throttle_ignore=False)
+    response = rest_obj.get_time_series_daily('IBM', throttle_ignore=False)
+    assert throttling_error.strip() == response.json()['Note']
+
+
+def test_throttling_success():
+    """
+    Test the throttle limit of the API. Should return a valid response after waiting a minute.
+    """
+    for _ in range(5):
+        rest_obj.get_time_series_daily('IBM')
+    response = rest_obj.get_time_series_daily('IBM')
+    assert len(response.json()['Time Series (Daily)']) == 100
 
 
 def test_status_code_for_valid_request():
     """
-
+    Test status code of a valid GET request.
     """
     response = rest_obj.get_time_series_daily('IBM')
 
@@ -17,28 +37,25 @@ def test_status_code_for_valid_request():
 
 def test_compactness_of_response():
     """
-
-    :return:
+    Test the default output size of the response. Should be 100 data points.
     """
-    response = rest_obj.get_time_series_daily(symbol='IBM')
+    response = rest_obj.get_time_series_daily('IBM')
 
     assert len(response.json()['Time Series (Daily)']) == 100
 
 
 def test_full_outputsize_of_reponse():
     """
-
-    :return:
+    Test full output size of the response. Should include 20+ years worth of data.
     """
     response = rest_obj.get_time_series_daily('IBM', outputsize='full')
 
     assert '1999-11-01' in response.json()['Time Series (Daily)'].keys()
 
 
-def test_datatype_of_response():
+def test_csv_datatype_of_response():
     """
-
-    :return:
+    Test csv datatype of the request. Response should be in csv format.
     """
     response = rest_obj.get_time_series_daily('IBM', datatype='csv')
 
@@ -48,8 +65,7 @@ def test_datatype_of_response():
 
 def test_error_message_for_unsupported_symbol():
     """
-
-    :return:
+    Test the request for an unknown symbol.
     """
     response = rest_obj.get_time_series_daily('UNKNOWN')
 
@@ -58,8 +74,7 @@ def test_error_message_for_unsupported_symbol():
 
 def test_error_message_for_invalid_apikey():
     """
-
-    :return:
+    Test the API when called with an invalid api key.
     """
     response = rest_obj.get_time_series_daily('IBM', apikey='InvalidApiKey')
 
@@ -68,22 +83,15 @@ def test_error_message_for_invalid_apikey():
 
 def test_error_message_for_no_apikey():
     """
-
-    :return:
+    Test the API when called without an api key.
     """
     response = rest_obj.get_time_series_daily('IBM', no_auth=True)
 
     assert no_apikey_error.strip() == response.json()['Error Message']
 
 
-def test_throttling():
-    """
 
-    :return:
-    """
-    for _ in range(6):
-        rest_obj.get_time_series_daily(symbol='IBM')
-    response = rest_obj.get_time_series_daily(symbol='IBM')
-    assert len(response.json()['Time Series (Daily)']) == 100
+
+
 
 
