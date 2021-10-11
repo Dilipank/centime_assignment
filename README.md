@@ -9,4 +9,5 @@ pipenv shell
 pipenv install
 
 # Run tests via pytest
-pytest -s
+pytest --html=report.html
+The html report will have the test details.
