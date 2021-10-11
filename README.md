@@ -10,4 +10,6 @@ pipenv install
 
 # Run tests via pytest
 pytest --html=report.html
-The html report will have the test details.
+
+# HTML report
+A html file with the name provided while running the test will be created with the test details.
